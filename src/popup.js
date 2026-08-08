@@ -16,7 +16,24 @@ const $ = (id) => document.getElementById(id);
 const ANSICHTEN = ["ansicht-setup", "ansicht-ziel", "ansicht-ablage", "ansicht-status"];
 
 function zeige(id) {
-  for (const a of ANSICHTEN) $(a).hidden = a !== id;
+  for (const a of ANSICHTEN) {
+    const el = $(a);
+    if (el) el.hidden = a !== id;
+  }
+}
+
+/**
+ * Handler nur setzen, wenn es das Element gibt.
+ *
+ * Grund: Chrome laedt bei "unpacked" HTML und JS nicht immer synchron neu.
+ * Nach einem Update lief neues JS gegen altes HTML, ein ``null.onclick``
+ * warf, und weil die Verdrahtung auf MODULEBENE steht, brach damit das
+ * ganze Skript ab — sichtbar blieb nur die Kopfzeile. Ein fehlendes
+ * Element darf hoechstens seine eigene Funktion kosten, nie die App.
+ */
+function anKlick(id, fn) {
+  const el = $(id);
+  if (el) el.onclick = fn;
 }
 
 function status(text, art = "", { spinner = false, zurueck = false } = {}) {
@@ -258,34 +275,42 @@ async function ablegen() {
 
 // ── Verdrahtung ───────────────────────────────────────────────────
 
-$("btn-einstellungen").onclick = () => chrome.runtime.openOptionsPage();
-$("btn-zu-einstellungen").onclick = () => chrome.runtime.openOptionsPage();
+anKlick("btn-einstellungen", () => chrome.runtime.openOptionsPage());
+anKlick("btn-zu-einstellungen", () => chrome.runtime.openOptionsPage());
 
 /**
  * Kopfzeile oeffnet cura — der Absprung in die Plattform, ohne vorher
  * clippen zu muessen. Bereits offenen cura-Tab wiederverwenden statt einen
  * zweiten aufzumachen: wer das oefter klickt, saemmelt sonst Tabs.
+ *
+ * Das Wiederverwenden ist Komfort, kein Muss: fehlt das Tabs-Recht, faellt
+ * es auf "neuer Tab" zurueck, statt den Klick ins Leere laufen zu lassen.
  */
-$("btn-cura-oeffnen").onclick = async () => {
+anKlick("btn-cura-oeffnen", async () => {
   const cfg = await einstellungenLaden();
   const basis = (cfg.baseUrl || "").trim().replace(/\/+$/, "");
   if (!basis) {
     chrome.runtime.openOptionsPage(); // ohne URL gibt es nichts zu oeffnen
     return;
   }
-  const vorhandene = await chrome.tabs.query({ url: `${basis}/*` });
-  if (vorhandene.length) {
-    await chrome.tabs.update(vorhandene[0].id, { active: true });
-    await chrome.windows.update(vorhandene[0].windowId, { focused: true });
-  } else {
+  try {
+    const vorhandene = await chrome.tabs.query({ url: `${basis}/*` });
+    if (vorhandene.length) {
+      await chrome.tabs.update(vorhandene[0].id, { active: true });
+      await chrome.windows.update(vorhandene[0].windowId, { focused: true });
+    } else {
+      await chrome.tabs.create({ url: basis });
+    }
+  } catch {
     await chrome.tabs.create({ url: basis });
   }
   window.close();
-};
+});
 
-$("wahl-wiki").onchange = (e) => zielWechselBehandeln(e.target.value);
+const wahlWiki = $("wahl-wiki");
+if (wahlWiki) wahlWiki.onchange = (e) => zielWechselBehandeln(e.target.value);
 
-$("btn-ziel-speichern").onclick = async () => {
+anKlick("btn-ziel-speichern", async () => {
   const treffer = zielFinden($("wahl-wiki").value);
   if (!treffer) return;
 
@@ -298,35 +323,51 @@ $("btn-ziel-speichern").onclick = async () => {
     section: treffer.art === "wiki" ? $("wahl-section").value.trim() || "Allgemein" : "",
   });
   await ablageAnsichtOeffnen();
-};
+});
 
-$("btn-ziel-abbrechen").onclick = () => ablageAnsichtOeffnen();
-$("btn-ziel-aendern").onclick = () => zielAnsichtOeffnen({ istAenderung: true });
-$("btn-ablegen").onclick = ablegen;
-$("btn-status-zurueck").onclick = () => {
-  $("btn-seite-oeffnen").hidden = true;
+anKlick("btn-ziel-abbrechen", () => ablageAnsichtOeffnen());
+anKlick("btn-ziel-aendern", () => zielAnsichtOeffnen({ istAenderung: true }));
+anKlick("btn-ablegen", ablegen);
+anKlick("btn-status-zurueck", () => {
+  const btn = $("btn-seite-oeffnen");
+  if (btn) btn.hidden = true;
   ablageAnsichtOeffnen();
-};
+});
 
 // ── Start ─────────────────────────────────────────────────────────
 
 (async function start() {
-  const cfg = await einstellungenLaden();
+  try {
+    const cfg = await einstellungenLaden();
 
-  // Kopfzeile nur anbieten, wenn es ein Ziel gibt. Ohne hinterlegte URL
-  // wuerde der Klick nur in die Einstellungen umleiten — dann lieber gleich
-  // sichtbar machen, dass hier nichts zu holen ist.
-  const basis = (cfg.baseUrl || "").trim();
-  $("btn-cura-oeffnen").disabled = !basis;
-  $("btn-cura-oeffnen").title = basis ? `${basis} oeffnen` : "Noch keine cura-Adresse hinterlegt";
+    // Kopfzeile nur anbieten, wenn es ein Ziel gibt. Ohne hinterlegte URL
+    // wuerde der Klick nur in die Einstellungen umleiten — dann lieber gleich
+    // sichtbar machen, dass hier nichts zu holen ist.
+    const basis = (cfg.baseUrl || "").trim();
+    const curaKnopf = $("btn-cura-oeffnen");
+    if (curaKnopf) {
+      curaKnopf.disabled = !basis;
+      curaKnopf.title = basis ? `${basis} oeffnen` : "Noch keine cura-Adresse hinterlegt";
+    }
 
-  if (!(await istEingerichtet())) {
-    zeige("ansicht-setup");
-    return;
+    if (!(await istEingerichtet())) {
+      zeige("ansicht-setup");
+      return;
+    }
+    if (!cfg.wikiId) {
+      await zielAnsichtOeffnen({ istAenderung: false });
+      return;
+    }
+    await ablageAnsichtOeffnen();
+  } catch (e) {
+    // Ohne diesen Fang bliebe bei einem Startfehler nur die Kopfzeile stehen
+    // und der Grund staende ausschliesslich in der Popup-Konsole, die kaum
+    // jemand oeffnet. Lieber die Meldung dort zeigen, wo der Nutzer sie sieht.
+    status(
+      `Start fehlgeschlagen: ${e?.message || e}\n\n`
+        + "Auf chrome://extensions das Neu-laden-Symbol (↻) druecken. "
+        + "Bleibt es dabei, die Erweiterung entfernen und erneut laden.",
+      "fehler",
+    );
   }
-  if (!cfg.wikiId) {
-    await zielAnsichtOeffnen({ istAenderung: false });
-    return;
-  }
-  await ablageAnsichtOeffnen();
 })();
