@@ -171,11 +171,11 @@ export async function sectionsLaden(wikiId) {
 /**
  * Die eigentliche Ablage: Screenshot + URL + Seitentext an cura geben.
  *
- * ACHTUNG — dieser Endpoint existiert im Backend NOCH NICHT. Er ist als
- * Entwicklungsauftrag an das Projekt "smart" uebergeben (docs/AUFTRAG-CURA-BACKEND.md).
- * Erwarteter Vertrag: multipart/form-data, Felder wie unten; Antwort
- * {artifact_id, page_slug?, status}. Bis dahin meldet die Extension einen
- * klaren 404 statt still zu scheitern.
+ * Zwei Routen im Backend (beide vorhanden):
+ *   manuelles Wiki → POST /api/wikis/{id}/capture                      (mit section)
+ *   Thema          → POST /api/workspaces/{ws}/themes/{id}/capture     (ohne section)
+ *
+ * multipart/form-data; Antwort {artifact_id, status, page_url?}.
  */
 export async function seiteAblegen({
   zielArt, zielId, zielWorkspaceId, section, url, titel,
@@ -198,7 +198,7 @@ export async function seiteAblegen({
     if (!zielWorkspaceId) {
       throw new CuraFehler(
         "Zum gemerkten Thema fehlt die Workspace-Zuordnung. Bitte das Ziel "
-          + "einmal neu auswaehlen (im Popup auf „aendern").",
+          + "einmal neu auswaehlen (im Popup auf 'aendern').",
         0,
       );
     }
@@ -221,7 +221,7 @@ export async function seiteAblegen({
       // wurde in cura geloescht oder umgehaengt.
       throw new CuraFehler(
         "Ziel nicht gefunden (404). Das gemerkte Wiki bzw. Thema gibt es in "
-          + "cura nicht mehr — bitte im Popup auf „aendern" ein neues Ziel waehlen.",
+          + "cura nicht mehr — bitte im Popup auf 'aendern' ein neues Ziel waehlen.",
         404,
       );
     }
