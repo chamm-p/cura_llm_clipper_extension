@@ -221,6 +221,7 @@ async function ablegen() {
     const ergebnis = await seiteAblegen({
       zielArt: cfg.zielArt || "wiki",
       zielId: cfg.wikiId,
+      zielWorkspaceId: cfg.zielWorkspaceId,
       section: cfg.section,
       url: erfasst.url,
       titel: erfasst.titel,
@@ -292,6 +293,7 @@ $("btn-ziel-speichern").onclick = async () => {
     zielArt: treffer.art,
     wikiId: treffer.id,
     wikiName: treffer.name,
+    zielWorkspaceId: treffer.workspaceId || "",
     // Themen kennen keine Sections — dort waere der Wert irrefuehrend.
     section: treffer.art === "wiki" ? $("wahl-section").value.trim() || "Allgemein" : "",
   });

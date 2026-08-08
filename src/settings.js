@@ -22,6 +22,9 @@ const STANDARD = {
   zielArt: "wiki",
   wikiId: "",
   wikiName: "",
+  //: Nur bei ``zielArt === "thema"`` belegt — die Themen-Capture-Route
+  //: haengt am Workspace-Router und braucht die ID im Pfad.
+  zielWorkspaceId: "",
   section: "Allgemein",
   // Nach dem Ablegen die erzeugte Seite oeffnen?
   nachAblageOeffnen: false,
@@ -77,11 +80,12 @@ export async function hatZiel() {
 }
 
 /** Ziel merken — genau das, was beim ersten Mal abgefragt wurde. */
-export async function zielMerken({ zielArt, wikiId, wikiName, section }) {
+export async function zielMerken({ zielArt, wikiId, wikiName, zielWorkspaceId, section }) {
   await einstellungenSpeichern({
     zielArt: zielArt || "wiki",
     wikiId,
     wikiName,
+    zielWorkspaceId: zielWorkspaceId || "",
     // Beim Thema bleibt die Section bewusst leer statt "Allgemein" —
     // sonst suggeriert die Anzeige einen Bereich, den es dort nicht gibt.
     section: zielArt === "thema" ? "" : section || "Allgemein",

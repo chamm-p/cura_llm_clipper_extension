@@ -1,8 +1,9 @@
 # cura Clipper
 
-Browser-Erweiterung, die die gerade geöffnete Webseite als **Screenshot + Text**
-in ein **cura**-Wiki ablegt. Die Auswertung übernimmt cura mit dem bestehenden
-Vision-Pfad — die Erweiterung selbst interpretiert nichts.
+Browser-Erweiterung, die die gerade geöffnete Webseite als **Screenshot + Text
++ MHTML-Archiv** in ein **cura**-Wiki oder -Thema ablegt. Die Auswertung
+übernimmt cura mit dem bestehenden Vision-Pfad — die Erweiterung selbst
+interpretiert nichts.
 
 Läuft in **Chrome, Edge, Brave, Opera, Vivaldi** (Manifest V3, keine
 Chrome-exklusiven APIs).
@@ -11,14 +12,21 @@ Chrome-exklusiven APIs).
 
 ## Status
 
-⚠️ **Noch nicht einsatzfähig.** Die Erweiterung ist fertig, aber der
-Gegenpart im cura-Backend fehlt: `POST /api/wikis/{id}/capture` existiert dort
-noch nicht. Die Spezifikation liegt als Entwicklungsauftrag bei:
+**Einsatzbereit.** Die Gegenstücke im cura-Backend sind eingespielt:
 
-→ [`docs/AUFTRAG-CURA-BACKEND.md`](docs/AUFTRAG-CURA-BACKEND.md) *(übergeben an Projekt „smart")*
+| Route | Zweck |
+|---|---|
+| `POST /api/wikis/{id}/capture` | Ablage in ein manuelles Wiki (mit Section) |
+| `POST /api/workspaces/{ws}/themes/{id}/capture` | Ablage in ein Thema (ohne Section) |
 
-Bis dahin meldet die Erweiterung beim Ablegen einen klaren Fehler statt still zu
-scheitern. Verbindungstest, Wiki-Auswahl und Einstellungen funktionieren bereits.
+Die Aufträge, aus denen sie entstanden sind, liegen zur Nachvollziehbarkeit bei:
+[`docs/AUFTRAG-CURA-BACKEND.md`](docs/AUFTRAG-CURA-BACKEND.md) und
+[`docs/AUFTRAG-CURA-BACKEND-2.md`](docs/AUFTRAG-CURA-BACKEND-2.md)
+*(umgesetzt im Projekt „smart")*.
+
+Offen aus Auftrag 2 (Backend-seitig, betrifft die Darstellung in cura):
+Führung der Clippings als eigene Kategorie statt als „Bild", und die Trennung
+von Artefakten manueller Wikis gegenüber Themen-Artefakten.
 
 ---
 

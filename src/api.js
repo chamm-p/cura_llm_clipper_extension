@@ -178,7 +178,8 @@ export async function sectionsLaden(wikiId) {
  * klaren 404 statt still zu scheitern.
  */
 export async function seiteAblegen({
-  zielArt, zielId, section, url, titel, seitenText, screenshotBlob, mhtmlBlob,
+  zielArt, zielId, zielWorkspaceId, section, url, titel,
+  seitenText, screenshotBlob, mhtmlBlob,
 }) {
   const fd = new FormData();
   fd.append("source_url", url);
@@ -190,13 +191,22 @@ export async function seiteAblegen({
   if (mhtmlBlob) fd.append("mhtml", mhtmlBlob, "seite.mhtml");
 
   // Zwei Zielarten, zwei Routen — die Section gibt es nur im manuellen Wiki.
-  // Ein Thema hat keine Sections; dort entscheidet das Backend anhand des
-  // Themas, wo der Eintrag landet.
-  const pfad =
-    zielArt === "thema"
-      ? `/api/themes/${zielId}/capture`
-      : `/api/wikis/${zielId}/capture`;
-  if (zielArt !== "thema") fd.append("section", section || "Allgemein");
+  // Die Themen-Route haengt am Workspace-Router (``/api/workspaces/…``), nicht
+  // unter ``/api/themes``: dort liegt nur der Papierkorb-Router.
+  let pfad;
+  if (zielArt === "thema") {
+    if (!zielWorkspaceId) {
+      throw new CuraFehler(
+        "Zum gemerkten Thema fehlt die Workspace-Zuordnung. Bitte das Ziel "
+          + "einmal neu auswaehlen (im Popup auf „aendern").",
+        0,
+      );
+    }
+    pfad = `/api/workspaces/${zielWorkspaceId}/themes/${zielId}/capture`;
+  } else {
+    pfad = `/api/wikis/${zielId}/capture`;
+    fd.append("section", section || "Allgemein");
+  }
 
   try {
     return await anfrage(pfad, {
@@ -206,9 +216,12 @@ export async function seiteAblegen({
     });
   } catch (e) {
     if (e instanceof CuraFehler && e.status === 404) {
+      // 404 heisst hier NICHT mehr "Endpoint fehlt" — beide Capture-Routen
+      // sind im Backend vorhanden. Viel wahrscheinlicher: das gemerkte Ziel
+      // wurde in cura geloescht oder umgehaengt.
       throw new CuraFehler(
-        "Der Capture-Endpoint fehlt im cura-Backend (404). Die Backend-Erweiterung "
-          + "aus docs/AUFTRAG-CURA-BACKEND.md ist dort noch nicht eingespielt.",
+        "Ziel nicht gefunden (404). Das gemerkte Wiki bzw. Thema gibt es in "
+          + "cura nicht mehr — bitte im Popup auf „aendern" ein neues Ziel waehlen.",
         404,
       );
     }

@@ -53,6 +53,8 @@ async function wikisFuellen({ still = false } = {}) {
         o.dataset.name = z.name;
         o.dataset.art = z.art;
         o.dataset.id = z.id;
+        // Nur Themen tragen sie — ihre Capture-Route braucht die ID im Pfad.
+        if (z.workspaceId) o.dataset.ws = z.workspaceId;
         if (o.value === aktuell) o.selected = true;
         grp.appendChild(o);
       }
@@ -125,6 +127,7 @@ $("btn-speichern").onclick = async () => {
     // Praefix ("wiki:<uuid>") und waere als ID unbrauchbar.
     wikiId: gewaehlt?.dataset.id || "",
     wikiName: gewaehlt?.dataset.name || "",
+    zielWorkspaceId: gewaehlt?.dataset.ws || "",
     section: art === "wiki" ? $("f-section").value.trim() || "Allgemein" : "",
   });
 
