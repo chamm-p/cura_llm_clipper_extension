@@ -1,8 +1,8 @@
-# cura Clipper
+# Cura_llm (Browser-Erweiterung)
 
 Browser-Erweiterung, die die gerade geöffnete Webseite als **Screenshot + Text
-+ MHTML-Archiv** in ein **cura**-Wiki oder -Thema ablegt. Die Auswertung
-übernimmt cura mit dem bestehenden Vision-Pfad — die Erweiterung selbst
++ MHTML-Archiv** in ein **Cura_llm**-Wiki oder -Thema ablegt. Die Auswertung
+übernimmt Cura_llm mit dem bestehenden Vision-Pfad — die Erweiterung selbst
 interpretiert nichts.
 
 Läuft in **Chrome, Edge, Brave, Opera, Vivaldi** (Manifest V3, keine
@@ -12,7 +12,7 @@ Chrome-exklusiven APIs).
 
 ## Status
 
-**Einsatzbereit.** Die Gegenstücke im cura-Backend sind eingespielt:
+**Einsatzbereit.** Die Gegenstücke im Cura_llm-Backend sind eingespielt:
 
 | Route | Zweck |
 |---|---|
@@ -24,7 +24,7 @@ Die Aufträge, aus denen sie entstanden sind, liegen zur Nachvollziehbarkeit bei
 [`docs/AUFTRAG-CURA-BACKEND-2.md`](docs/AUFTRAG-CURA-BACKEND-2.md)
 *(umgesetzt im Projekt „smart")*.
 
-Offen aus Auftrag 2 (Backend-seitig, betrifft die Darstellung in cura):
+Offen aus Auftrag 2 (Backend-seitig, betrifft die Darstellung in Cura_llm):
 Führung der Clippings als eigene Kategorie statt als „Bild", und die Trennung
 von Artefakten manueller Wikis gegenüber Themen-Artefakten.
 
@@ -41,12 +41,12 @@ von Artefakten manueller Wikis gegenüber Themen-Artefakten.
 
 | Feld | Wert |
 |---|---|
-| cura-Adresse | Basis-URL ohne Pfad, z. B. `https://cura.example.com` |
-| API-Key | cura → **Einstellungen → API & Gateway** → persönlichen Key erzeugen (`sk-gw-…`) |
+| Cura_llm-Adresse | Basis-URL ohne Pfad, z. B. `https://cura.example.com` |
+| API-Key | Cura_llm → **Einstellungen → API & Gateway** → persönlichen Key erzeugen (`sk-gw-…`) |
 | Workspace-ID | nur bei mehreren Workspaces nötig |
 | Sprache | Deutsch oder English — wirkt sofort |
 
-**Warum ein API-Key und kein Login?** cura authentifiziert ausschließlich per
+**Warum ein API-Key und kein Login?** Cura_llm authentifiziert ausschließlich per
 Bearer-Token (JWT der Web-App oder API-Key) — es gibt **kein Session-Cookie**,
 das eine Erweiterung mitschicken könnte. Der Key ist damit der einzige Weg, der
 ohne eigenes Login-Formular auskommt und auch mit OIDC-/Keycloak-Konten
@@ -55,14 +55,14 @@ funktioniert. Er wird **nur lokal** gespeichert, nie im Browser-Sync.
 ## Benutzung
 
 Beim **ersten Mal** fragt die Erweiterung nach **Wiki** und **Bereich (Section)**
-und merkt sich beides. Danach genügt ein Klick auf **In cura ablegen**.
+und merkt sich beides. Danach genügt ein Klick auf **In Cura_llm ablegen**.
 
 Ziel ändern: im Popup auf *ändern* — oder jederzeit über ⚙ Einstellungen.
 
-Alternativ per **Rechtsklick** auf die Seite → *Seite in cura-Wiki ablegen*.
+Alternativ per **Rechtsklick** auf die Seite → *Seite in Cura_llm-Wiki ablegen*.
 
-**Direkt zu cura:** Klick auf Logo/Name in der Kopfzeile öffnet die Plattform.
-Ist cura bereits in einem Tab offen, wird dieser aktiviert statt ein zweiter
+**Direkt zu Cura_llm:** Klick auf Logo/Name in der Kopfzeile öffnet die Plattform.
+Ist Cura_llm bereits in einem Tab offen, wird dieser aktiviert statt ein zweiter
 geöffnet.
 
 ## Ablage-Ziele
@@ -88,20 +88,22 @@ Volltext deckt ab, was der Screenshot nicht zeigt.
 
 ```
 manifest.json         MV3-Manifest
-icons/                cura-Mini-Logo (aus curai/frontend/public/logo)
+icons/                Cura_llm-Mini-Logo (aus curai/frontend/public/logo)
 src/
   popup.html/.css/.js Ablage-UI + Erstauswahl des Ziels
   options.html/.css/.js Verbindung, Sprache, Ablage-Ziel
-  api.js              einzige Stelle, die cura kennt
+  api.js              einzige Stelle, die Cura_llm kennt
   capture.js          Screenshot + Text + MHTML
   settings.js         Speicherung (Ziel sync, Key lokal)
   i18n.js             Texte DE/EN
   background.js       Service Worker, Kontextmenü
 tools/
   pruefen.sh          Vorab-Prüfung — vor jedem Commit laufen lassen
+  bauen.sh            Verteil-ZIP bauen
 docs/
   AUFTRAG-CURA-BACKEND.md    Backend-Erweiterung (umgesetzt)
   AUFTRAG-CURA-BACKEND-2.md  Themen-Ziel, Clippings, MHTML
+  AUFTRAG-CURA-BACKEND-3.md  Download der Extension aus Cura_llm
 ```
 
 ## Entwicklung

@@ -48,7 +48,7 @@ empfehlen.
 
 ## 3. Vorschlag für den Anleitungstext
 
-> **cura Clipper installieren**
+> **Cura_llm installieren**
 >
 > 1. ZIP herunterladen und **entpacken**. Den entpackten Ordner an einen Ort
 >    legen, an dem er bleiben kann — nicht in „Downloads".

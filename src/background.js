@@ -14,8 +14,8 @@
 const MENUE_ID = "cura-clipper-ablegen";
 
 const MENUE_TITEL = {
-  de: "Seite in cura-Wiki ablegen",
-  en: "Save page to cura wiki",
+  de: "Seite in Cura_llm-Wiki ablegen",
+  en: "Save page to Cura_llm wiki",
 };
 
 /**

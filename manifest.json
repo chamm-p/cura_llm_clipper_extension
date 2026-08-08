@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "cura Clipper",
+  "name": "Cura_llm",
   "version": "0.1.0",
-  "description": "Aktuelle Webseite als Screenshot + Text in ein cura-Wiki ablegen.",
+  "description": "Aktuelle Webseite als Screenshot + Text in ein Cura_llm-Wiki ablegen.",
 
   "icons": {
     "16": "icons/icon-16.png",
