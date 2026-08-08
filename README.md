@@ -52,11 +52,24 @@ Ziel ändern: im Popup auf *ändern* — oder jederzeit über ⚙ Einstellungen.
 
 Alternativ per **Rechtsklick** auf die Seite → *Seite in cura-Wiki ablegen*.
 
+**Direkt zu cura:** Klick auf Logo/Name in der Kopfzeile öffnet die Plattform.
+Ist cura bereits in einem Tab offen, wird dieser aktiviert statt ein zweiter
+geöffnet.
+
+## Ablage-Ziele
+
+| Art | Bedeutung |
+|---|---|
+| **Manuelles Wiki** | Eigene Sammlung mit frei benennbaren Bereichen (Sections) |
+| **Thema** | Ablage im themenbezogenen LLM-Wiki; keine Sections |
+
 ## Was erfasst wird
 
 - **Screenshot** des sichtbaren Bereichs (`captureVisibleTab`) — trägt das Layout
 - **Seitentext** der ganzen Seite (bis 40 000 Zeichen) — trägt den Inhalt auch
   unterhalb des Viewports
+- **MHTML-Vollarchiv** (`pageCapture`) — die komplette Seite mit Bildern, CSS und
+  Fonts in einer Datei; entfällt bei > 25 MB oder gesperrten Seiten
 - **URL** — geht als `meta.source_url` mit und dient dem Vision-Modell als Kontext
 
 Kein scrollendes Stitching: das bricht an sticky Headern und Lazy-Loading. Der

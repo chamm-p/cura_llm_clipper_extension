@@ -260,6 +260,28 @@ async function ablegen() {
 $("btn-einstellungen").onclick = () => chrome.runtime.openOptionsPage();
 $("btn-zu-einstellungen").onclick = () => chrome.runtime.openOptionsPage();
 
+/**
+ * Kopfzeile oeffnet cura — der Absprung in die Plattform, ohne vorher
+ * clippen zu muessen. Bereits offenen cura-Tab wiederverwenden statt einen
+ * zweiten aufzumachen: wer das oefter klickt, saemmelt sonst Tabs.
+ */
+$("btn-cura-oeffnen").onclick = async () => {
+  const cfg = await einstellungenLaden();
+  const basis = (cfg.baseUrl || "").trim().replace(/\/+$/, "");
+  if (!basis) {
+    chrome.runtime.openOptionsPage(); // ohne URL gibt es nichts zu oeffnen
+    return;
+  }
+  const vorhandene = await chrome.tabs.query({ url: `${basis}/*` });
+  if (vorhandene.length) {
+    await chrome.tabs.update(vorhandene[0].id, { active: true });
+    await chrome.windows.update(vorhandene[0].windowId, { focused: true });
+  } else {
+    await chrome.tabs.create({ url: basis });
+  }
+  window.close();
+};
+
 $("wahl-wiki").onchange = (e) => zielWechselBehandeln(e.target.value);
 
 $("btn-ziel-speichern").onclick = async () => {
@@ -287,11 +309,19 @@ $("btn-status-zurueck").onclick = () => {
 // ── Start ─────────────────────────────────────────────────────────
 
 (async function start() {
+  const cfg = await einstellungenLaden();
+
+  // Kopfzeile nur anbieten, wenn es ein Ziel gibt. Ohne hinterlegte URL
+  // wuerde der Klick nur in die Einstellungen umleiten — dann lieber gleich
+  // sichtbar machen, dass hier nichts zu holen ist.
+  const basis = (cfg.baseUrl || "").trim();
+  $("btn-cura-oeffnen").disabled = !basis;
+  $("btn-cura-oeffnen").title = basis ? `${basis} oeffnen` : "Noch keine cura-Adresse hinterlegt";
+
   if (!(await istEingerichtet())) {
     zeige("ansicht-setup");
     return;
   }
-  const cfg = await einstellungenLaden();
   if (!cfg.wikiId) {
     await zielAnsichtOeffnen({ istAenderung: false });
     return;

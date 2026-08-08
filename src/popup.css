@@ -46,7 +46,30 @@ body {
   border-bottom: 1px solid var(--rand);
 }
 .logo { width: 20px; height: 20px; }
-.marke { font-weight: 600; flex: 1; }
+.marke { font-weight: 600; }
+
+/* Logo + Name als Absprung nach cura. Traegt jetzt das ``flex: 1``, das
+   vorher an ``.marke`` hing — sonst wandert das Zahnrad nach links. */
+.marke-knopf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.marke-knopf:hover { background: var(--rand); }
+.marke-knopf:hover .marke { color: var(--akzent); }
+.marke-knopf:disabled { cursor: default; }
+.marke-knopf:disabled:hover { background: none; }
+.marke-knopf:disabled:hover .marke { color: var(--fg); }
 
 .ikon-knopf {
   background: none;
