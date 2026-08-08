@@ -8,6 +8,7 @@
 
 import { einstellungenLaden, einstellungenSpeichern } from "./settings.js";
 import { michAbrufen, zieleLaden, sectionsLaden, CuraFehler } from "./api.js";
+import { t, spracheSetzen, seiteBeschriften } from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -34,7 +35,7 @@ async function wikisFuellen({ still = false } = {}) {
 
     auswahl.innerHTML = "";
     if (!wikis.length && !themen.length) {
-      auswahl.innerHTML = "<option value=''>— keine Ziele gefunden —</option>";
+      auswahl.innerHTML = `<option value="">${t("optKeineZiele")}</option>`;
       return;
     }
 
@@ -42,14 +43,14 @@ async function wikisFuellen({ still = false } = {}) {
     // Unterscheidung liesse sich beim Speichern nicht sagen, welche Route
     // die Ablage spaeter nehmen muss.
     const aktuell = `${cfg.zielArt || "wiki"}:${cfg.wikiId}`;
-    for (const [beschriftung, eintraege] of [["Manuelle Wikis", wikis], ["Themen", themen]]) {
+    for (const [beschriftung, eintraege] of [[t("gruppeWikis"), wikis], [t("gruppeThemen"), themen]]) {
       if (!eintraege.length) continue;
       const grp = document.createElement("optgroup");
       grp.label = beschriftung;
       for (const z of eintraege) {
         const o = document.createElement("option");
         o.value = `${z.art}:${z.id}`;
-        o.textContent = z.art === "wiki" && z.istThemenGebunden ? `${z.name} (an Thema)` : z.name;
+        o.textContent = z.art === "wiki" && z.istThemenGebunden ? t("anThema", { name: z.name }) : z.name;
         o.dataset.name = z.name;
         o.dataset.art = z.art;
         o.dataset.id = z.id;
@@ -62,7 +63,7 @@ async function wikisFuellen({ still = false } = {}) {
     }
     await sectionsUmschalten();
   } catch (e) {
-    auswahl.innerHTML = "<option value=''>— Abruf fehlgeschlagen —</option>";
+    auswahl.innerHTML = `<option value="">${t("optAbrufFehler")}</option>`;
     if (!still) melde(ziel, e.message, "fehler");
   }
 }
@@ -93,26 +94,40 @@ async function sectionsFuellen(wikiId) {
 
 $("btn-test").onclick = async () => {
   const ziel = $("test-ergebnis");
-  melde(ziel, "teste…");
+  melde(ziel, t("optTestet"));
   await verbindungSpeichern();
   try {
     const ich = await michAbrufen();
-    const name = ich?.username || ich?.email || "unbekannt";
-    melde(ziel, `Verbunden als ${name}.`, "erfolg");
+    const name = ich?.username || ich?.email || t("optUnbekannt");
+    melde(ziel, t("optVerbundenAls", { name }), "erfolg");
     await wikisFuellen({ still: true });
   } catch (e) {
-    melde(ziel, e instanceof CuraFehler ? e.message : `Fehler: ${e.message}`, "fehler");
+    melde(ziel, e instanceof CuraFehler ? e.message : t("optFehler", { fehler: e.message }), "fehler");
   }
 };
 
 $("btn-wikis-laden").onclick = async () => {
   await verbindungSpeichern();
-  melde($("test-ergebnis"), "lade Wikis…");
+  melde($("test-ergebnis"), t("optLaedtZiele"));
   await wikisFuellen();
-  if ($("test-ergebnis").textContent === "lade Wikis…") melde($("test-ergebnis"), "");
+  if ($("test-ergebnis").textContent === t("optLaedtZiele")) melde($("test-ergebnis"), "");
 };
 
 $("f-wiki").onchange = () => sectionsUmschalten();
+
+/**
+ * Sprache wirkt SOFORT, nicht erst beim Speichern: sonst waehlt man "English"
+ * und die Seite bleibt deutsch, bis irgendwann gespeichert wird — das liest
+ * sich wie ein Fehler. Der Wert wird dabei gleich mitgesichert.
+ */
+$("f-sprache").onchange = async (e) => {
+  spracheSetzen(e.target.value);
+  await einstellungenSpeichern({ sprache: e.target.value });
+  seiteBeschriften();
+  // Die Ziel-Liste traegt uebersetzte Gruppentitel — neu aufbauen.
+  const cfg = await einstellungenLaden();
+  if (cfg.baseUrl && cfg.apiKey) await wikisFuellen({ still: true });
+};
 
 $("btn-speichern").onclick = async () => {
   const gewaehlt = $("f-wiki").selectedOptions[0];
@@ -122,16 +137,17 @@ $("btn-speichern").onclick = async () => {
     baseUrl: $("f-url").value.trim(),
     apiKey: $("f-key").value.trim(),
     workspaceId: $("f-ws").value.trim(),
+    sprache: $("f-sprache").value,
     zielArt: art,
     // BEWUSST ``dataset.id`` und nicht ``value``: letzteres traegt das
     // Praefix ("wiki:<uuid>") und waere als ID unbrauchbar.
     wikiId: gewaehlt?.dataset.id || "",
     wikiName: gewaehlt?.dataset.name || "",
     zielWorkspaceId: gewaehlt?.dataset.ws || "",
-    section: art === "wiki" ? $("f-section").value.trim() || "Allgemein" : "",
+    section: art === "wiki" ? $("f-section").value.trim() || t("allgemein") : "",
   });
 
-  melde($("speicher-ergebnis"), "Gespeichert.", "erfolg");
+  melde($("speicher-ergebnis"), t("optGespeichert"), "erfolg");
   setTimeout(() => melde($("speicher-ergebnis"), ""), 2500);
 };
 
@@ -139,10 +155,16 @@ $("btn-speichern").onclick = async () => {
 
 (async function start() {
   const cfg = await einstellungenLaden();
+
+  // Sprache VOR dem Beschriften setzen — jedes t() danach haengt daran.
+  spracheSetzen(cfg.sprache);
+  seiteBeschriften();
+
+  $("f-sprache").value = cfg.sprache || "de";
   $("f-url").value = cfg.baseUrl;
   $("f-key").value = cfg.apiKey;
   $("f-ws").value = cfg.workspaceId;
-  $("f-section").value = cfg.section || "Allgemein";
+  $("f-section").value = cfg.section || t("allgemein");
 
   if (cfg.baseUrl && cfg.apiKey) await wikisFuellen({ still: true });
 })();

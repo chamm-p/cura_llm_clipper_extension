@@ -9,41 +9,37 @@
     <header class="kopf">
       <!-- Logo + Name oeffnen cura. In JEDER Ansicht erreichbar, auch wenn
            noch nichts eingerichtet oder gerade ein Fehler zu sehen ist. -->
-      <button id="btn-cura-oeffnen" class="marke-knopf" title="cura oeffnen">
+      <button id="btn-cura-oeffnen" class="marke-knopf">
         <img src="../icons/icon-32.png" alt="" class="logo" />
-        <span class="marke">cura Clipper</span>
+        <span class="marke" data-t="marke">cura Clipper</span>
       </button>
-      <button id="btn-einstellungen" class="ikon-knopf" title="Einstellungen">⚙</button>
+      <button id="btn-einstellungen" class="ikon-knopf" data-t-title="einstellungen">⚙</button>
     </header>
 
     <!-- Nicht eingerichtet: URL/Key fehlen -->
     <section id="ansicht-setup" class="ansicht" hidden>
-      <p class="hinweis">
-        Noch nicht eingerichtet. cura-Adresse und persoenlicher API-Key fehlen.
-      </p>
-      <button id="btn-zu-einstellungen" class="primaer">Einstellungen oeffnen</button>
+      <p class="hinweis" data-t="setupHinweis"></p>
+      <button id="btn-zu-einstellungen" class="primaer" data-t="setupKnopf"></button>
     </section>
 
     <!-- Ziel-Auswahl (erstes Mal oder "Ziel aendern") -->
     <section id="ansicht-ziel" class="ansicht" hidden>
-      <p class="hinweis" id="ziel-einleitung">
-        Wohin sollen die Seiten abgelegt werden?
-      </p>
+      <p class="hinweis" id="ziel-einleitung"></p>
 
       <label class="feld">
-        <span>Ziel</span>
+        <span data-t="zielLabel"></span>
         <select id="wahl-wiki"></select>
       </label>
 
       <label class="feld" id="feld-section">
-        <span>Bereich (Section)</span>
-        <input id="wahl-section" list="section-vorschlaege" placeholder="Allgemein" />
+        <span data-t="sectionLabel"></span>
+        <input id="wahl-section" list="section-vorschlaege" data-t-platzhalter="allgemein" />
         <datalist id="section-vorschlaege"></datalist>
       </label>
 
       <div class="knopf-reihe">
-        <button id="btn-ziel-speichern" class="primaer">Merken &amp; weiter</button>
-        <button id="btn-ziel-abbrechen" class="sekundaer" hidden>Abbrechen</button>
+        <button id="btn-ziel-speichern" class="primaer" data-t="merkenWeiter"></button>
+        <button id="btn-ziel-abbrechen" class="sekundaer" data-t="abbrechen" hidden></button>
       </div>
     </section>
 
@@ -56,10 +52,10 @@
 
       <div class="ziel-zeile">
         <span class="ziel-text">→ <strong id="ziel-anzeige"></strong></span>
-        <button id="btn-ziel-aendern" class="link-knopf">aendern</button>
+        <button id="btn-ziel-aendern" class="link-knopf" data-t="zielAendern"></button>
       </div>
 
-      <button id="btn-ablegen" class="primaer gross">In cura ablegen</button>
+      <button id="btn-ablegen" class="primaer gross" data-t="ablegenKnopf"></button>
       <p class="fuss" id="erfassungs-info"></p>
     </section>
 
@@ -68,8 +64,8 @@
       <div id="status-spinner" class="spinner" hidden></div>
       <p id="status-text" class="status-text"></p>
       <div class="knopf-reihe">
-        <button id="btn-status-zurueck" class="sekundaer" hidden>Zurueck</button>
-        <button id="btn-seite-oeffnen" class="primaer" hidden>Im Wiki oeffnen</button>
+        <button id="btn-status-zurueck" class="sekundaer" data-t="zurueck" hidden></button>
+        <button id="btn-seite-oeffnen" class="primaer" hidden></button>
       </div>
     </section>
 

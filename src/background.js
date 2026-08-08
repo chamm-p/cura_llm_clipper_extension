@@ -13,17 +13,35 @@
 
 const MENUE_ID = "cura-clipper-ablegen";
 
+const MENUE_TITEL = {
+  de: "Seite in cura-Wiki ablegen",
+  en: "Save page to cura wiki",
+};
+
+/**
+ * Menue anlegen. Die Sprache kommt direkt aus dem Speicher statt ueber
+ * ``i18n.js``: der Worker laeuft ohne DOM und wird staendig beendet — ein
+ * Modul-Import fuer einen einzigen Text lohnt hier nicht.
+ */
 function menueAnlegen() {
-  // `removeAll` zuerst: ein zweites `create` mit gleicher ID wuerde sonst
-  // "duplicate id" werfen und die Registrierung abbrechen.
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: MENUE_ID,
-      title: "Seite in cura-Wiki ablegen",
-      contexts: ["page", "selection", "image", "link"],
+  chrome.storage.sync.get("cura_clipper_settings", (daten) => {
+    const sprache = daten?.cura_clipper_settings?.sprache === "en" ? "en" : "de";
+    // `removeAll` zuerst: ein zweites `create` mit gleicher ID wuerde sonst
+    // "duplicate id" werfen und die Registrierung abbrechen.
+    chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.create({
+        id: MENUE_ID,
+        title: MENUE_TITEL[sprache],
+        contexts: ["page", "selection", "image", "link"],
+      });
     });
   });
 }
+
+// Sprache umgestellt → Menuetitel nachziehen.
+chrome.storage.onChanged.addListener((aenderungen, bereich) => {
+  if (bereich === "sync" && aenderungen.cura_clipper_settings) menueAnlegen();
+});
 
 chrome.runtime.onInstalled.addListener((details) => {
   menueAnlegen();

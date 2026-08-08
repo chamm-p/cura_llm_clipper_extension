@@ -72,6 +72,48 @@ for paar in popup options; do
 done
 
 echo
+echo "── Uebersetzungen ──"
+python3 - <<'PY' || fehler=1
+import re, pathlib, sys
+
+quelle = pathlib.Path("src/i18n.js").read_text()
+# Schluessel des TEXTE-Objekts: Zeilenanfang, Name, Doppelpunkt, geschweifte Klammer
+bekannt = set(re.findall(r"^\s{2}(\w+):\s*\{", quelle, re.M))
+
+benutzt = set()
+for f in pathlib.Path("src").glob("*.js"):
+    if f.name == "i18n.js":
+        continue
+    benutzt |= set(re.findall(r'\bt\(\s*"([^"]+)"', f.read_text()))
+for f in pathlib.Path("src").glob("*.html"):
+    txt = f.read_text()
+    benutzt |= set(re.findall(r'data-t(?:-title|-platzhalter)?="([^"]+)"', txt))
+
+fehlend = sorted(benutzt - bekannt)
+unbenutzt = sorted(bekannt - benutzt)
+
+for k in fehlend:
+    print(f"FEHLER  Schluessel benutzt, aber nicht uebersetzt: {k}")
+for k in unbenutzt:
+    print(f"Hinweis Uebersetzung ohne Verwendung: {k}")
+
+# Beide Sprachen je Schluessel vorhanden?
+# Vom Schluessel bis zum naechsten Schluessel (oder Objektende) schauen —
+# NICHT bis zur naechsten `}`: Texte enthalten `{platzhalter}`, daran brach
+# eine engere Regex ab und meldete faelschlich fehlende Uebersetzungen.
+ohne_en = []
+for k in bekannt:
+    m = re.search(rf"^\s{{2}}{k}:\s*\{{(.*?)(?=^\s{{2}}\w+:\s*\{{|^\}};)", quelle, re.M | re.S)
+    if not m or not re.search(r"\ben:\s*\"", m.group(1)):
+        ohne_en.append(k)
+for k in sorted(ohne_en):
+    print(f"FEHLER  Ohne englische Fassung: {k}")
+
+print(f"OK      {len(bekannt)} Schluessel, {len(benutzt)} verwendet")
+sys.exit(1 if fehlend or ohne_en else 0)
+PY
+
+echo
 if [ "$fehler" -eq 0 ]; then
   echo "Alles in Ordnung."
 else

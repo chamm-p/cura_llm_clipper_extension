@@ -9,6 +9,8 @@
  * zerbrechen.
  */
 
+import { t } from "./i18n.js";
+
 /** Seiten, auf denen Extensions per Browser-Richtlinie nicht arbeiten duerfen. */
 const GESPERRT = [
   /^chrome:\/\//i,
@@ -30,12 +32,9 @@ export function seiteIstSperrgebiet(url) {
 /** Aktiver Tab im aktuellen Fenster. */
 export async function aktivenTabHolen() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab) throw new Error("Kein aktiver Tab gefunden.");
+  if (!tab) throw new Error(t("fehlerKeinTab"));
   if (seiteIstSperrgebiet(tab.url)) {
-    throw new Error(
-      "Diese Seite ist fuer Erweiterungen gesperrt (Browser-interne Seite oder Web Store). "
-        + "Auf einer normalen Webseite erneut versuchen.",
-    );
+    throw new Error(t("fehlerSperrgebiet"));
   }
   return tab;
 }

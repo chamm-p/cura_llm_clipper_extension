@@ -16,6 +16,9 @@ const LOCAL_SCHLUESSEL = "cura_clipper_secret";
 const STANDARD = {
   baseUrl: "",
   workspaceId: "",
+  //: Oberflaechensprache: "de" | "en". Eigener Schalter statt
+  //: ``chrome.i18n``, das sich nur nach der Browsersprache richtet.
+  sprache: "de",
   // Gemerktes Ziel — leer bedeutet "beim ersten Mal fragen".
   // ``zielArt``: "wiki" = manuelles Wiki, "thema" = themenbezogenes LLM-Wiki.
   // ``wikiId`` traegt in beiden Faellen die ID des Ziels.

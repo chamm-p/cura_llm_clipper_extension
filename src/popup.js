@@ -11,6 +11,7 @@
 import { einstellungenLaden, istEingerichtet, zielMerken } from "./settings.js";
 import { zieleLaden, sectionsLaden, seiteAblegen, CuraFehler } from "./api.js";
 import { seiteErfassen, aktivenTabHolen } from "./capture.js";
+import { t, spracheSetzen, seiteBeschriften } from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 const ANSICHTEN = ["ansicht-setup", "ansicht-ziel", "ansicht-ablage", "ansicht-status"];
@@ -75,7 +76,7 @@ function linkAnbieten(url, beschriftung) {
     return;
   }
   btn.hidden = false;
-  btn.textContent = `In ${beschriftung} oeffnen`;
+  btn.textContent = t("imZielOeffnen", { name: beschriftung });
   btn.title = url;
   btn.onclick = () => chrome.tabs.create({ url });
 }
@@ -98,12 +99,10 @@ function sectionFeldZeigen(zeigen) {
 async function zielAnsichtOeffnen({ istAenderung = false } = {}) {
   zeige("ansicht-ziel");
   $("btn-ziel-abbrechen").hidden = !istAenderung;
-  $("ziel-einleitung").textContent = istAenderung
-    ? "Neues Ziel fuer kuenftige Ablagen waehlen."
-    : "Wohin sollen die Seiten abgelegt werden? Die Auswahl wird gemerkt.";
+  $("ziel-einleitung").textContent = t(istAenderung ? "zielFrageAendern" : "zielFrageErst");
 
   const auswahl = $("wahl-wiki");
-  auswahl.innerHTML = "<option>lade…</option>";
+  auswahl.innerHTML = `<option>${t("laedt")}</option>`;
   auswahl.disabled = true;
 
   let wikis;
@@ -118,8 +117,7 @@ async function zielAnsichtOeffnen({ istAenderung = false } = {}) {
   zielListe = [...wikis, ...themen];
   if (!zielListe.length) {
     status(
-      "Keine Ablage-Ziele gefunden. In cura zuerst ein Wiki oder ein Thema "
-        + "anlegen — oder pruefen, ob der API-Key zum richtigen Konto gehoert.",
+      t("keineZiele"),
       "fehler",
     );
     return;
@@ -132,8 +130,8 @@ async function zielAnsichtOeffnen({ istAenderung = false } = {}) {
   // Gruppiert, weil beides fachlich verschieden ist: ein manuelles Wiki ist
   // eine eigene Sammlung, ein Thema fuehrt ins themenbezogene LLM-Wiki.
   const gruppen = [
-    ["Manuelle Wikis", wikis],
-    ["Themen", themen],
+    [t("gruppeWikis"), wikis],
+    [t("gruppeThemen"), themen],
   ];
   for (const [beschriftung, eintraege] of gruppen) {
     if (!eintraege.length) continue;
@@ -142,7 +140,7 @@ async function zielAnsichtOeffnen({ istAenderung = false } = {}) {
     for (const z of eintraege) {
       const o = document.createElement("option");
       o.value = `${z.art}:${z.id}`;
-      o.textContent = z.art === "wiki" && z.istThemenGebunden ? `${z.name} (an Thema)` : z.name;
+      o.textContent = z.art === "wiki" && z.istThemenGebunden ? t("anThema", { name: z.name }) : z.name;
       if (o.value === aktuell) o.selected = true;
       grp.appendChild(o);
     }
@@ -150,7 +148,7 @@ async function zielAnsichtOeffnen({ istAenderung = false } = {}) {
   }
   auswahl.disabled = false;
 
-  $("wahl-section").value = cfg.section || "Allgemein";
+  $("wahl-section").value = cfg.section || t("allgemein");
   await zielWechselBehandeln(auswahl.value);
 }
 
@@ -187,8 +185,8 @@ async function ablageAnsichtOeffnen() {
   const istThema = cfg.zielArt === "thema";
   const anzeige = $("ziel-anzeige");
   anzeige.textContent = istThema
-    ? cfg.wikiName || "Thema"
-    : `${cfg.wikiName || "Wiki"} · ${cfg.section || "Allgemein"}`;
+    ? cfg.wikiName || t("gruppeThemen")
+    : `${cfg.wikiName || "Wiki"} · ${cfg.section || t("allgemein")}`;
 
   const zielUrl = absolutMachen(
     istThema ? `/themes?theme=${cfg.wikiId}` : `/wiki?wiki=${cfg.wikiId}`,
@@ -214,12 +212,12 @@ async function ablageAnsichtOeffnen() {
     return;
   }
 
-  $("erfassungs-info").textContent = "Erfasst wird der sichtbare Bereich als Bild plus der Seitentext.";
+  $("erfassungs-info").textContent = t("erfassungsInfo");
   zeige("ansicht-ablage");
 }
 
 async function ablegen() {
-  status("Seite wird erfasst…", "", { spinner: true });
+  status(t("wirdErfasst"), "", { spinner: true });
 
   let erfasst;
   try {
@@ -230,7 +228,7 @@ async function ablegen() {
   }
 
   const cfg = await einstellungenLaden();
-  status("Wird an cura uebergeben…", "", { spinner: true });
+  status(t("wirdUebergeben"), "", { spinner: true });
 
   const istThema = cfg.zielArt === "thema";
 
@@ -247,14 +245,20 @@ async function ablegen() {
       mhtmlBlob: erfasst.mhtml,
     });
 
-    let zusatz = erfasst.textGekuerzt ? "\n(Seitentext war sehr lang und wurde gekuerzt.)" : "";
-    if (!erfasst.mhtml) zusatz += "\n(Vollarchiv der Seite nicht moeglich — Bild und Text wurden abgelegt.)";
+    let zusatz = erfasst.textGekuerzt ? `\n${t("textGekuerzt")}` : "";
+    if (!erfasst.mhtml) zusatz += `\n${t("ohneArchiv")}`;
     // Anfuehrungszeichen bewusst gerade: gemischte typografische Paare
     // ("…") haben hier schon einmal einen String vorzeitig beendet.
-    const wohin = istThema ? `Thema '${cfg.wikiName}'` : `'${cfg.wikiName}' · ${cfg.section}`;
+    const wohin = istThema
+      ? t("themaWohin", { name: cfg.wikiName })
+      : t("wikiWohin", { name: cfg.wikiName, section: cfg.section });
+    // Wartezeit ansagen: cura wertet den Screenshot per Vision aus und
+    // kuratiert danach die Wiki-Seite — beides im Hintergrund, gedrosselt
+    // (2 parallele Vision-Calls, 5 Artefakte pro Kurations-Runde). Ohne
+    // diesen Hinweis sucht der Nutzer die Seite sofort im Wiki und haelt
+    // das leere Ergebnis fuer einen Fehler.
     status(
-      `Abgelegt in ${wohin}.\n`
-        + `Die Auswertung des Screenshots laeuft in cura im Hintergrund.${zusatz}`,
+      `${t("abgelegtIn", { wohin })}\n${t("auswertungLaeuft")}${zusatz}`,
       "erfolg",
       { zurueck: true },
     );
@@ -322,7 +326,7 @@ anKlick("btn-ziel-speichern", async () => {
     wikiName: treffer.name,
     zielWorkspaceId: treffer.workspaceId || "",
     // Themen kennen keine Sections — dort waere der Wert irrefuehrend.
-    section: treffer.art === "wiki" ? $("wahl-section").value.trim() || "Allgemein" : "",
+    section: treffer.art === "wiki" ? $("wahl-section").value.trim() || t("allgemein") : "",
   });
   await ablageAnsichtOeffnen();
 });
@@ -342,6 +346,10 @@ anKlick("btn-status-zurueck", () => {
   try {
     const cfg = await einstellungenLaden();
 
+    // Sprache VOR allem anderen setzen — jedes t() danach haengt daran.
+    spracheSetzen(cfg.sprache);
+    seiteBeschriften();
+
     // Kopfzeile nur anbieten, wenn es ein Ziel gibt. Ohne hinterlegte URL
     // wuerde der Klick nur in die Einstellungen umleiten — dann lieber gleich
     // sichtbar machen, dass hier nichts zu holen ist.
@@ -349,7 +357,7 @@ anKlick("btn-status-zurueck", () => {
     const curaKnopf = $("btn-cura-oeffnen");
     if (curaKnopf) {
       curaKnopf.disabled = !basis;
-      curaKnopf.title = basis ? `${basis} oeffnen` : "Noch keine cura-Adresse hinterlegt";
+      curaKnopf.title = basis ? t("curaOeffnen", { basis }) : t("curaOhneAdresse");
     }
 
     if (!(await istEingerichtet())) {
@@ -366,9 +374,7 @@ anKlick("btn-status-zurueck", () => {
     // und der Grund staende ausschliesslich in der Popup-Konsole, die kaum
     // jemand oeffnet. Lieber die Meldung dort zeigen, wo der Nutzer sie sieht.
     status(
-      `Start fehlgeschlagen: ${e?.message || e}\n\n`
-        + "Auf chrome://extensions das Neu-laden-Symbol (↻) druecken. "
-        + "Bleibt es dabei, die Erweiterung entfernen und erneut laden.",
+      t("startFehler", { fehler: e?.message || e }),
       "fehler",
     );
   }

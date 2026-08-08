@@ -10,68 +10,71 @@
       <header class="kopf">
         <img src="../icons/icon-48.png" alt="" class="logo" />
         <div>
-          <h1>cura Clipper</h1>
-          <p class="unterzeile">Webseiten als Screenshot + Text ins cura-Wiki ablegen.</p>
+          <h1 data-t="marke"></h1>
+          <p class="unterzeile" data-t="optUnterzeile"></p>
         </div>
       </header>
 
       <section class="karte">
-        <h2>Verbindung</h2>
+        <h2 data-t="optSprache"></h2>
+        <label class="feld">
+          <select id="f-sprache">
+            <option value="de">Deutsch</option>
+            <option value="en">English</option>
+          </select>
+          <small data-t="optSpracheHilfe"></small>
+        </label>
+      </section>
+
+      <section class="karte">
+        <h2 data-t="optVerbindung"></h2>
 
         <label class="feld">
-          <span>cura-Adresse</span>
+          <span data-t="optAdresse"></span>
           <input id="f-url" type="url" placeholder="https://cura.example.com" spellcheck="false" />
-          <small>Basis-URL ohne Pfad — dieselbe, unter der du cura im Browser aufrufst.</small>
+          <small data-t="optAdresseHilfe"></small>
         </label>
 
         <label class="feld">
-          <span>Persoenlicher API-Key</span>
+          <span data-t="optKey"></span>
           <input id="f-key" type="password" placeholder="sk-gw-…" spellcheck="false" autocomplete="off" />
-          <small>
-            In cura unter <strong>Einstellungen → API &amp; Gateway</strong> erzeugen.
-            Der Key wird nur auf diesem Geraet gespeichert, nicht im Browser-Sync.
-          </small>
+          <small data-t="optKeyHilfe"></small>
         </label>
 
         <label class="feld">
-          <span>Workspace-ID <em>(optional)</em></span>
-          <input id="f-ws" placeholder="leer lassen, falls unklar" spellcheck="false" />
-          <small>Nur noetig, wenn dein Konto mehrere Workspaces hat.</small>
+          <span data-t="optWorkspace"></span>
+          <input id="f-ws" spellcheck="false" />
+          <small data-t="optWorkspaceHilfe"></small>
         </label>
 
         <div class="knopf-reihe">
-          <button id="btn-test" class="sekundaer">Verbindung testen</button>
+          <button id="btn-test" class="sekundaer" data-t="optTesten"></button>
           <span id="test-ergebnis" class="ergebnis"></span>
         </div>
       </section>
 
       <section class="karte">
-        <h2>Ablage-Ziel</h2>
-        <p class="hinweis">
-          Wird beim ersten Ablegen abgefragt und dann gemerkt. Hier aenderbar.
-        </p>
+        <h2 data-t="optZiel"></h2>
+        <p class="hinweis" data-t="optZielHinweis"></p>
 
         <label class="feld">
-          <span>Ziel</span>
-          <select id="f-wiki"><option value="">— noch nicht geladen —</option></select>
-          <small>
-            <strong>Manuelles Wiki</strong> = eigene Sammlung mit Bereichen.
-            <strong>Thema</strong> = Ablage im themenbezogenen Wiki.
-          </small>
+          <span data-t="zielLabel"></span>
+          <select id="f-wiki"><option value="" data-t="optNochNicht"></option></select>
+          <small data-t="optZielHilfe"></small>
         </label>
 
         <label class="feld" id="f-feld-section">
-          <span>Bereich (Section)</span>
-          <input id="f-section" list="f-section-liste" placeholder="Allgemein" />
+          <span data-t="sectionLabel"></span>
+          <input id="f-section" list="f-section-liste" data-t-platzhalter="allgemein" />
           <datalist id="f-section-liste"></datalist>
-          <small>Leer = <strong>Allgemein</strong>. Nur bei manuellen Wikis.</small>
+          <small data-t="optSectionHilfe"></small>
         </label>
 
-        <button id="btn-wikis-laden" class="sekundaer">Wikis neu laden</button>
+        <button id="btn-wikis-laden" class="sekundaer" data-t="optZieleLaden"></button>
       </section>
 
       <div class="fussleiste">
-        <button id="btn-speichern" class="primaer">Speichern</button>
+        <button id="btn-speichern" class="primaer" data-t="optSpeichern"></button>
         <span id="speicher-ergebnis" class="ergebnis"></span>
       </div>
     </main>

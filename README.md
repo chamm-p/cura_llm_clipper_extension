@@ -44,6 +44,7 @@ von Artefakten manueller Wikis gegenüber Themen-Artefakten.
 | cura-Adresse | Basis-URL ohne Pfad, z. B. `https://cura.example.com` |
 | API-Key | cura → **Einstellungen → API & Gateway** → persönlichen Key erzeugen (`sk-gw-…`) |
 | Workspace-ID | nur bei mehreren Workspaces nötig |
+| Sprache | Deutsch oder English — wirkt sofort |
 
 **Warum ein API-Key und kein Login?** cura authentifiziert ausschließlich per
 Bearer-Token (JWT der Web-App oder API-Key) — es gibt **kein Session-Cookie**,
@@ -90,14 +91,27 @@ manifest.json         MV3-Manifest
 icons/                cura-Mini-Logo (aus curai/frontend/public/logo)
 src/
   popup.html/.css/.js Ablage-UI + Erstauswahl des Ziels
-  options.html/.css/.js Verbindung + Ablage-Ziel
+  options.html/.css/.js Verbindung, Sprache, Ablage-Ziel
   api.js              einzige Stelle, die cura kennt
-  capture.js          Screenshot + Textextraktion
+  capture.js          Screenshot + Text + MHTML
   settings.js         Speicherung (Ziel sync, Key lokal)
+  i18n.js             Texte DE/EN
   background.js       Service Worker, Kontextmenü
+tools/
+  pruefen.sh          Vorab-Prüfung — vor jedem Commit laufen lassen
 docs/
-  AUFTRAG-CURA-BACKEND.md   Spezifikation der Backend-Erweiterung
+  AUFTRAG-CURA-BACKEND.md    Backend-Erweiterung (umgesetzt)
+  AUFTRAG-CURA-BACKEND-2.md  Themen-Ziel, Clippings, MHTML
 ```
+
+## Entwicklung
+
+```bash
+./tools/pruefen.sh
+```
+
+Prüft Syntax (**als ES-Modul** — `node --check` allein übersieht Fehler in
+Strings), Manifest-Pfade, DOM-IDs und Übersetzungslücken.
 
 ## Grenzen
 

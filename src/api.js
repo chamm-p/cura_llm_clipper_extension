@@ -9,6 +9,7 @@
  */
 
 import { einstellungenLaden } from "./settings.js";
+import { t } from "./i18n.js";
 
 /** Fehler mit auswertbarem Status — das UI unterscheidet 401 von "Server weg". */
 export class CuraFehler extends Error {
@@ -33,8 +34,8 @@ async function anfrage(pfad, { methode = "GET", koerper = null, istFormData = fa
   const cfg = await einstellungenLaden();
   const basis = basisUrlNormalisieren(cfg.baseUrl);
 
-  if (!basis) throw new CuraFehler("Keine cura-URL hinterlegt — bitte in den Einstellungen setzen.", 0);
-  if (!cfg.apiKey) throw new CuraFehler("Kein API-Key hinterlegt — bitte in den Einstellungen setzen.", 0);
+  if (!basis) throw new CuraFehler(t("fehlerKeineUrl"), 0);
+  if (!cfg.apiKey) throw new CuraFehler(t("fehlerKeinKey"), 0);
 
   const headers = { Authorization: `Bearer ${cfg.apiKey}` };
   if (!istFormData && koerper != null) headers["Content-Type"] = "application/json";
@@ -50,18 +51,11 @@ async function anfrage(pfad, { methode = "GET", koerper = null, istFormData = fa
     });
   } catch (e) {
     // Netzwerkebene: falsche URL, Server aus, TLS-Problem, CORS-Preflight tot.
-    throw new CuraFehler(
-      `cura ist unter ${basis} nicht erreichbar. URL und Erreichbarkeit pruefen.`,
-      0,
-    );
+    throw new CuraFehler(t("fehlerNichtErreichbar", { basis }), 0);
   }
 
   if (res.status === 401 || res.status === 403) {
-    throw new CuraFehler(
-      "Anmeldung abgelehnt (401/403). API-Key pruefen — er muss ein persoenlicher "
-        + "Key aus cura → Einstellungen → API & Gateway sein.",
-      res.status,
-    );
+    throw new CuraFehler(t("fehlerAuth"), res.status);
   }
   if (!res.ok) {
     let detail = "";
@@ -71,7 +65,7 @@ async function anfrage(pfad, { methode = "GET", koerper = null, istFormData = fa
     } catch {
       /* Antwort war kein JSON — Status allein muss reichen. */
     }
-    throw new CuraFehler(`cura antwortete mit HTTP ${res.status}${detail}`, res.status);
+    throw new CuraFehler(t("fehlerHttp", { status: res.status, detail }), res.status);
   }
 
   if (res.status === 204) return null;
@@ -129,9 +123,10 @@ export async function themenLaden() {
     } catch {
       continue; // ein unzugaenglicher Workspace darf den Rest nicht kippen
     }
-    for (const t of Array.isArray(themen) ? themen : []) {
-      if (t.wiki_enabled === false) continue; // ohne Wiki kein sinnvolles Ziel
-      treffer.push({ art: "thema", id: t.id, name: t.name, workspaceId: wsId });
+    // NICHT ``t`` als Laufvariable: das verdeckt die Uebersetzungsfunktion.
+    for (const thema of Array.isArray(themen) ? themen : []) {
+      if (thema.wiki_enabled === false) continue; // ohne Wiki kein sinnvolles Ziel
+      treffer.push({ art: "thema", id: thema.id, name: thema.name, workspaceId: wsId });
     }
   }
   return treffer;
@@ -157,14 +152,15 @@ export async function zieleLaden() {
  */
 export async function sectionsLaden(wikiId) {
   const seiten = await anfrage(`/api/wikis/${wikiId}/pages`);
+  const allg = t("allgemein");
   const namen = new Set();
   for (const s of Array.isArray(seiten) ? seiten : []) {
     const sec = (s.section || "").trim();
-    namen.add(sec || "Allgemein");
+    namen.add(sec || allg);
   }
-  namen.add("Allgemein"); // immer anbieten, auch im leeren Wiki
+  namen.add(allg); // immer anbieten, auch im leeren Wiki
   return [...namen].sort((a, b) =>
-    a === "Allgemein" ? -1 : b === "Allgemein" ? 1 : a.localeCompare(b, "de"),
+    a === allg ? -1 : b === allg ? 1 : a.localeCompare(b),
   );
 }
 
@@ -196,16 +192,12 @@ export async function seiteAblegen({
   let pfad;
   if (zielArt === "thema") {
     if (!zielWorkspaceId) {
-      throw new CuraFehler(
-        "Zum gemerkten Thema fehlt die Workspace-Zuordnung. Bitte das Ziel "
-          + "einmal neu auswaehlen (im Popup auf 'aendern').",
-        0,
-      );
+      throw new CuraFehler(t("fehlerWsFehlt"), 0);
     }
     pfad = `/api/workspaces/${zielWorkspaceId}/themes/${zielId}/capture`;
   } else {
     pfad = `/api/wikis/${zielId}/capture`;
-    fd.append("section", section || "Allgemein");
+    fd.append("section", section || t("allgemein"));
   }
 
   try {
@@ -219,11 +211,7 @@ export async function seiteAblegen({
       // 404 heisst hier NICHT mehr "Endpoint fehlt" — beide Capture-Routen
       // sind im Backend vorhanden. Viel wahrscheinlicher: das gemerkte Ziel
       // wurde in cura geloescht oder umgehaengt.
-      throw new CuraFehler(
-        "Ziel nicht gefunden (404). Das gemerkte Wiki bzw. Thema gibt es in "
-          + "cura nicht mehr — bitte im Popup auf 'aendern' ein neues Ziel waehlen.",
-        404,
-      );
+      throw new CuraFehler(t("fehlerZielWeg"), 404);
     }
     throw e;
   }
