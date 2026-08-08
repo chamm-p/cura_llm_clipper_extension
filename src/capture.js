@@ -10,6 +10,7 @@
  */
 
 import { t } from "./i18n.js";
+import { einstellungenLaden } from "./settings.js";
 
 /** Seiten, auf denen Extensions per Browser-Richtlinie nicht arbeiten duerfen. */
 const GESPERRT = [
@@ -29,12 +30,43 @@ export function seiteIstSperrgebiet(url) {
   return GESPERRT.some((re) => re.test(url || ""));
 }
 
+/**
+ * Liegt die Seite auf cura selbst?
+ *
+ * Ein Clipping von cura ins cura-Wiki ergibt keinen Sinn — es erzeugt nur
+ * einen Screenshot der eigenen Oberflaeche. Anders als GESPERRT kann das
+ * nicht statisch stehen: die Adresse kommt aus den Einstellungen.
+ *
+ * Verglichen wird der ORIGIN, nicht der URL-Anfang: ein reiner
+ * ``startsWith`` haette sonst auch ``cura.example.com.angreifer.tld``
+ * durchgehen lassen — und umgekehrt Unterseiten mit abweichendem Pfad
+ * falsch behandelt.
+ */
+export function istCuraSeite(url, basisUrl) {
+  if (!url || !basisUrl) return false;
+  try {
+    const a = new URL(url);
+    const b = new URL(basisUrl);
+    // Host UND Port, aber bewusst OHNE Schema: wer cura intern ueber http
+    // erreicht, waehrend in den Einstellungen https steht (oder umgekehrt),
+    // soll trotzdem gesperrt sein. Faelschlich sperren kostet hier nichts,
+    // ein durchgerutschtes Selbst-Clipping schon.
+    return a.host === b.host;
+  } catch {
+    return false; // unvollstaendige Basis-URL: lieber nicht sperren
+  }
+}
+
 /** Aktiver Tab im aktuellen Fenster. */
 export async function aktivenTabHolen() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab) throw new Error(t("fehlerKeinTab"));
   if (seiteIstSperrgebiet(tab.url)) {
     throw new Error(t("fehlerSperrgebiet"));
+  }
+  const { baseUrl } = await einstellungenLaden();
+  if (istCuraSeite(tab.url, baseUrl)) {
+    throw new Error(t("fehlerCuraSeite"));
   }
   return tab;
 }

@@ -86,6 +86,8 @@ const TEXTE = {
   fehlerKeinTab:         { de: "Kein aktiver Tab gefunden.", en: "No active tab found." },
   fehlerSperrgebiet:     { de: "Diese Seite ist fuer Erweiterungen gesperrt (Browser-interne Seite oder Web Store). Auf einer normalen Webseite erneut versuchen.",
                            en: "Extensions are blocked on this page (browser-internal page or web store). Try again on a regular website." },
+  fehlerCuraSeite:       { de: "Das ist cura selbst — ein Clipping der eigenen Oberflaeche ergibt keinen Sinn. Auf einer externen Webseite erneut versuchen.",
+                           en: "This is cura itself — clipping its own interface serves no purpose. Try again on an external website." },
 
   // ── Einstellungsseite ──
   optUnterzeile:         { de: "Webseiten als Screenshot + Text ins cura-Wiki ablegen.",
