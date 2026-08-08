@@ -113,6 +113,25 @@ docs/
 Prüft Syntax (**als ES-Modul** — `node --check` allein übersieht Fehler in
 Strings), Manifest-Pfade, DOM-IDs und Übersetzungslücken.
 
+```bash
+./tools/bauen.sh
+```
+
+Baut `dist/cura-clipper-<version>.zip` zum Verteilen (~84 KB; nur `manifest.json`,
+`src/`, `icons/`). Läuft vorher `pruefen.sh` — ein ZIP mit kaputtem Modul soll
+gar nicht erst entstehen.
+
+**Zum Verteilen:** Das ZIP muss beim Empfänger **entpackt** werden — Chrome
+verlangt bei „Entpackte Erweiterung laden" einen Ordner, kein Archiv. Ein
+`.crx` per Klick zu installieren geht seit Jahren nicht mehr.
+
+## Browser
+
+| Browser | Status |
+|---|---|
+| Chrome, Edge, Brave, Opera, Vivaldi | läuft unverändert |
+| Firefox | **nicht ohne Anpassung** — braucht `background.scripts` statt `service_worker`, eine Add-on-ID unter `browser_specific_settings`, und kennt `chrome.pageCapture` nicht (MHTML entfiele) |
+
 ## Grenzen
 
 - Browser-interne Seiten (`chrome://`, `edge://`, Web Store) sind für
