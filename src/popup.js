@@ -249,7 +249,9 @@ async function ablegen() {
 
     let zusatz = erfasst.textGekuerzt ? "\n(Seitentext war sehr lang und wurde gekuerzt.)" : "";
     if (!erfasst.mhtml) zusatz += "\n(Vollarchiv der Seite nicht moeglich — Bild und Text wurden abgelegt.)";
-    const wohin = istThema ? `Thema „${cfg.wikiName}"` : `„${cfg.wikiName}" · ${cfg.section}`;
+    // Anfuehrungszeichen bewusst gerade: gemischte typografische Paare
+    // ("…") haben hier schon einmal einen String vorzeitig beendet.
+    const wohin = istThema ? `Thema '${cfg.wikiName}'` : `'${cfg.wikiName}' · ${cfg.section}`;
     status(
       `Abgelegt in ${wohin}.\n`
         + `Die Auswertung des Screenshots laeuft in cura im Hintergrund.${zusatz}`,
