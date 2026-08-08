@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>cura Clipper</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="kopf">
+      <img src="../icons/icon-32.png" alt="" class="logo" />
+      <span class="marke">cura Clipper</span>
+      <button id="btn-einstellungen" class="ikon-knopf" title="Einstellungen">⚙</button>
+    </header>
+
+    <!-- Nicht eingerichtet: URL/Key fehlen -->
+    <section id="ansicht-setup" class="ansicht" hidden>
+      <p class="hinweis">
+        Noch nicht eingerichtet. cura-Adresse und persoenlicher API-Key fehlen.
+      </p>
+      <button id="btn-zu-einstellungen" class="primaer">Einstellungen oeffnen</button>
+    </section>
+
+    <!-- Ziel-Auswahl (erstes Mal oder "Ziel aendern") -->
+    <section id="ansicht-ziel" class="ansicht" hidden>
+      <p class="hinweis" id="ziel-einleitung">
+        Wohin sollen die Seiten abgelegt werden?
+      </p>
+
+      <label class="feld">
+        <span>Wiki</span>
+        <select id="wahl-wiki"></select>
+      </label>
+
+      <label class="feld">
+        <span>Bereich (Section)</span>
+        <input id="wahl-section" list="section-vorschlaege" placeholder="Allgemein" />
+        <datalist id="section-vorschlaege"></datalist>
+      </label>
+
+      <div class="knopf-reihe">
+        <button id="btn-ziel-speichern" class="primaer">Merken &amp; weiter</button>
+        <button id="btn-ziel-abbrechen" class="sekundaer" hidden>Abbrechen</button>
+      </div>
+    </section>
+
+    <!-- Normalfall: ablegen -->
+    <section id="ansicht-ablage" class="ansicht" hidden>
+      <div class="seite-info">
+        <div class="seite-titel" id="seite-titel">…</div>
+        <div class="seite-url" id="seite-url"></div>
+      </div>
+
+      <div class="ziel-zeile">
+        <span class="ziel-text">→ <strong id="ziel-anzeige"></strong></span>
+        <button id="btn-ziel-aendern" class="link-knopf">aendern</button>
+      </div>
+
+      <button id="btn-ablegen" class="primaer gross">In cura ablegen</button>
+      <p class="fuss" id="erfassungs-info"></p>
+    </section>
+
+    <!-- Status: laufend / Erfolg / Fehler -->
+    <section id="ansicht-status" class="ansicht" hidden>
+      <div id="status-spinner" class="spinner" hidden></div>
+      <p id="status-text" class="status-text"></p>
+      <div class="knopf-reihe">
+        <button id="btn-status-zurueck" class="sekundaer" hidden>Zurueck</button>
+        <button id="btn-seite-oeffnen" class="primaer" hidden>Im Wiki oeffnen</button>
+      </div>
+    </section>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

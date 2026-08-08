@@ -1,0 +1,183 @@
+/* Popup-Styling. Farben aus dem cura-Mini-Logo: warmes Off-White,
+   fast-schwarzes "C", roter Unterstrich als Akzent. */
+
+:root {
+  --bg: #faf8f5;
+  --fg: #1b1b1a;
+  --gedaempft: #6b6862;
+  --rand: #e2ddd5;
+  --akzent: #c8563a;
+  --akzent-dunkel: #a8452e;
+  --feld-bg: #ffffff;
+  --fehler: #b3261e;
+  --erfolg: #2e7d32;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1b19;
+    --fg: #f2efe9;
+    --gedaempft: #a8a49c;
+    --rand: #35332f;
+    --akzent: #e06a4b;
+    --akzent-dunkel: #c8563a;
+    --feld-bg: #262421;
+    --fehler: #f2b8b5;
+    --erfolg: #7fc784;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  width: 340px;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.kopf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rand);
+}
+.logo { width: 20px; height: 20px; }
+.marke { font-weight: 600; flex: 1; }
+
+.ikon-knopf {
+  background: none;
+  border: none;
+  color: var(--gedaempft);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.ikon-knopf:hover { background: var(--rand); color: var(--fg); }
+
+.ansicht { padding: 12px; }
+
+.hinweis { margin: 0 0 10px; color: var(--gedaempft); }
+
+.feld { display: block; margin-bottom: 10px; }
+.feld > span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gedaempft);
+}
+.feld select,
+.feld input {
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  background: var(--feld-bg);
+  color: var(--fg);
+  font: inherit;
+}
+.feld select:focus,
+.feld input:focus {
+  outline: 2px solid var(--akzent);
+  outline-offset: -1px;
+  border-color: var(--akzent);
+}
+
+button { font: inherit; cursor: pointer; border-radius: 6px; }
+
+.primaer {
+  background: var(--akzent);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+.primaer:hover { background: var(--akzent-dunkel); }
+.primaer:disabled { opacity: 0.55; cursor: default; }
+.primaer.gross { width: 100%; padding: 10px; }
+
+.sekundaer {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--rand);
+  padding: 8px 12px;
+}
+.sekundaer:hover { background: var(--rand); }
+
+.link-knopf {
+  background: none;
+  border: none;
+  color: var(--akzent);
+  text-decoration: underline;
+  padding: 0;
+  font-size: 12px;
+}
+
+.knopf-reihe { display: flex; gap: 8px; }
+.knopf-reihe .primaer { flex: 1; }
+
+.seite-info {
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  padding: 8px;
+  background: var(--feld-bg);
+  margin-bottom: 10px;
+}
+.seite-titel {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.seite-url {
+  font-size: 11px;
+  color: var(--gedaempft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.ziel-zeile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--gedaempft);
+}
+.ziel-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ziel-text strong { color: var(--fg); }
+
+.fuss { margin: 8px 0 0; font-size: 11px; color: var(--gedaempft); }
+
+.status-text { margin: 8px 0 12px; white-space: pre-wrap; }
+.status-text.fehler { color: var(--fehler); }
+.status-text.erfolg { color: var(--erfolg); }
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  margin: 4px auto 10px;
+  border: 2.5px solid var(--rand);
+  border-top-color: var(--akzent);
+  border-radius: 50%;
+  animation: dreh 0.7s linear infinite;
+}
+@keyframes dreh { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 2s; }
+}

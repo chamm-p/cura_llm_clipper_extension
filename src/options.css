@@ -1,0 +1,116 @@
+/* Einstellungsseite — gleiche Farbwelt wie das Popup. */
+
+:root {
+  --bg: #faf8f5;
+  --karte: #ffffff;
+  --fg: #1b1b1a;
+  --gedaempft: #6b6862;
+  --rand: #e2ddd5;
+  --akzent: #c8563a;
+  --akzent-dunkel: #a8452e;
+  --fehler: #b3261e;
+  --erfolg: #2e7d32;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1b19;
+    --karte: #262421;
+    --fg: #f2efe9;
+    --gedaempft: #a8a49c;
+    --rand: #35332f;
+    --akzent: #e06a4b;
+    --akzent-dunkel: #c8563a;
+    --fehler: #f2b8b5;
+    --erfolg: #7fc784;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 28px 20px 60px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.huelle { max-width: 620px; margin: 0 auto; }
+
+.kopf { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.logo { width: 40px; height: 40px; }
+h1 { margin: 0; font-size: 19px; }
+.unterzeile { margin: 2px 0 0; color: var(--gedaempft); font-size: 13px; }
+
+.karte {
+  background: var(--karte);
+  border: 1px solid var(--rand);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.karte h2 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gedaempft);
+}
+.hinweis { margin: 0 0 14px; color: var(--gedaempft); font-size: 13px; }
+
+.feld { display: block; margin: 14px 0; }
+.feld > span { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; }
+.feld em { font-weight: 400; color: var(--gedaempft); font-style: normal; }
+.feld input,
+.feld select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+.feld input:focus,
+.feld select:focus {
+  outline: 2px solid var(--akzent);
+  outline-offset: -1px;
+  border-color: var(--akzent);
+}
+.feld small { display: block; margin-top: 5px; color: var(--gedaempft); font-size: 12px; }
+
+button { font: inherit; cursor: pointer; border-radius: 6px; }
+
+.primaer {
+  background: var(--akzent);
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  font-weight: 600;
+}
+.primaer:hover { background: var(--akzent-dunkel); }
+
+.sekundaer {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--rand);
+  padding: 8px 14px;
+}
+.sekundaer:hover { background: var(--bg); }
+
+.knopf-reihe { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+
+.fussleiste {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  bottom: 0;
+  padding: 12px 0;
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+}
+
+.ergebnis { font-size: 13px; }
+.ergebnis.fehler { color: var(--fehler); }
+.ergebnis.erfolg { color: var(--erfolg); }

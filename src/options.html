@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>cura Clipper — Einstellungen</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="huelle">
+      <header class="kopf">
+        <img src="../icons/icon-48.png" alt="" class="logo" />
+        <div>
+          <h1>cura Clipper</h1>
+          <p class="unterzeile">Webseiten als Screenshot + Text ins cura-Wiki ablegen.</p>
+        </div>
+      </header>
+
+      <section class="karte">
+        <h2>Verbindung</h2>
+
+        <label class="feld">
+          <span>cura-Adresse</span>
+          <input id="f-url" type="url" placeholder="https://cura.example.com" spellcheck="false" />
+          <small>Basis-URL ohne Pfad — dieselbe, unter der du cura im Browser aufrufst.</small>
+        </label>
+
+        <label class="feld">
+          <span>Persoenlicher API-Key</span>
+          <input id="f-key" type="password" placeholder="sk-gw-…" spellcheck="false" autocomplete="off" />
+          <small>
+            In cura unter <strong>Einstellungen → API &amp; Gateway</strong> erzeugen.
+            Der Key wird nur auf diesem Geraet gespeichert, nicht im Browser-Sync.
+          </small>
+        </label>
+
+        <label class="feld">
+          <span>Workspace-ID <em>(optional)</em></span>
+          <input id="f-ws" placeholder="leer lassen, falls unklar" spellcheck="false" />
+          <small>Nur noetig, wenn dein Konto mehrere Workspaces hat.</small>
+        </label>
+
+        <div class="knopf-reihe">
+          <button id="btn-test" class="sekundaer">Verbindung testen</button>
+          <span id="test-ergebnis" class="ergebnis"></span>
+        </div>
+      </section>
+
+      <section class="karte">
+        <h2>Ablage-Ziel</h2>
+        <p class="hinweis">
+          Wird beim ersten Ablegen abgefragt und dann gemerkt. Hier aenderbar.
+        </p>
+
+        <label class="feld">
+          <span>Wiki</span>
+          <select id="f-wiki"><option value="">— noch nicht geladen —</option></select>
+        </label>
+
+        <label class="feld">
+          <span>Bereich (Section)</span>
+          <input id="f-section" list="f-section-liste" placeholder="Allgemein" />
+          <datalist id="f-section-liste"></datalist>
+          <small>Leer = <strong>Allgemein</strong>.</small>
+        </label>
+
+        <button id="btn-wikis-laden" class="sekundaer">Wikis neu laden</button>
+      </section>
+
+      <div class="fussleiste">
+        <button id="btn-speichern" class="primaer">Speichern</button>
+        <span id="speicher-ergebnis" class="ergebnis"></span>
+      </div>
+    </main>
+
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
