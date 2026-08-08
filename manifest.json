@@ -36,7 +36,8 @@
     "activeTab",
     "scripting",
     "storage",
-    "contextMenus"
+    "contextMenus",
+    "pageCapture"
   ],
 
   "host_permissions": [

@@ -7,7 +7,7 @@
  */
 
 import { einstellungenLaden, einstellungenSpeichern } from "./settings.js";
-import { michAbrufen, wikisLaden, sectionsLaden, CuraFehler } from "./api.js";
+import { michAbrufen, zieleLaden, sectionsLaden, CuraFehler } from "./api.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -29,27 +29,48 @@ async function wikisFuellen({ still = false } = {}) {
   const auswahl = $("f-wiki");
   const ziel = $("test-ergebnis");
   try {
-    const liste = await wikisLaden();
+    const { wikis, themen } = await zieleLaden();
     const cfg = await einstellungenLaden();
 
     auswahl.innerHTML = "";
-    if (!liste.length) {
-      auswahl.innerHTML = "<option value=''>— keine Wikis gefunden —</option>";
+    if (!wikis.length && !themen.length) {
+      auswahl.innerHTML = "<option value=''>— keine Ziele gefunden —</option>";
       return;
     }
-    for (const w of liste) {
-      const o = document.createElement("option");
-      o.value = w.id;
-      o.textContent = w.istThemenGebunden ? `${w.name} (Thema)` : w.name;
-      o.dataset.name = w.name;
-      if (w.id === cfg.wikiId) o.selected = true;
-      auswahl.appendChild(o);
+
+    // Wert traegt die Zielart mit: "wiki:<id>" bzw. "thema:<id>". Ohne diese
+    // Unterscheidung liesse sich beim Speichern nicht sagen, welche Route
+    // die Ablage spaeter nehmen muss.
+    const aktuell = `${cfg.zielArt || "wiki"}:${cfg.wikiId}`;
+    for (const [beschriftung, eintraege] of [["Manuelle Wikis", wikis], ["Themen", themen]]) {
+      if (!eintraege.length) continue;
+      const grp = document.createElement("optgroup");
+      grp.label = beschriftung;
+      for (const z of eintraege) {
+        const o = document.createElement("option");
+        o.value = `${z.art}:${z.id}`;
+        o.textContent = z.art === "wiki" && z.istThemenGebunden ? `${z.name} (an Thema)` : z.name;
+        o.dataset.name = z.name;
+        o.dataset.art = z.art;
+        o.dataset.id = z.id;
+        if (o.value === aktuell) o.selected = true;
+        grp.appendChild(o);
+      }
+      auswahl.appendChild(grp);
     }
-    if (auswahl.value) await sectionsFuellen(auswahl.value);
+    await sectionsUmschalten();
   } catch (e) {
     auswahl.innerHTML = "<option value=''>— Abruf fehlgeschlagen —</option>";
     if (!still) melde(ziel, e.message, "fehler");
   }
+}
+
+/** Section-Feld nur bei manuellen Wikis — Themen kennen keine Sections. */
+async function sectionsUmschalten() {
+  const gewaehlt = $("f-wiki").selectedOptions[0];
+  const istWiki = gewaehlt?.dataset.art === "wiki";
+  $("f-feld-section").hidden = !istWiki;
+  if (istWiki && gewaehlt?.dataset.id) await sectionsFuellen(gewaehlt.dataset.id);
 }
 
 async function sectionsFuellen(wikiId) {
@@ -89,19 +110,22 @@ $("btn-wikis-laden").onclick = async () => {
   if ($("test-ergebnis").textContent === "lade Wikis…") melde($("test-ergebnis"), "");
 };
 
-$("f-wiki").onchange = (e) => sectionsFuellen(e.target.value);
+$("f-wiki").onchange = () => sectionsUmschalten();
 
 $("btn-speichern").onclick = async () => {
-  const auswahl = $("f-wiki");
-  const gewaehlt = auswahl.selectedOptions[0];
+  const gewaehlt = $("f-wiki").selectedOptions[0];
+  const art = gewaehlt?.dataset.art || "wiki";
 
   await einstellungenSpeichern({
     baseUrl: $("f-url").value.trim(),
     apiKey: $("f-key").value.trim(),
     workspaceId: $("f-ws").value.trim(),
-    wikiId: auswahl.value || "",
+    zielArt: art,
+    // BEWUSST ``dataset.id`` und nicht ``value``: letzteres traegt das
+    // Praefix ("wiki:<uuid>") und waere als ID unbrauchbar.
+    wikiId: gewaehlt?.dataset.id || "",
     wikiName: gewaehlt?.dataset.name || "",
-    section: $("f-section").value.trim() || "Allgemein",
+    section: art === "wiki" ? $("f-section").value.trim() || "Allgemein" : "",
   });
 
   melde($("speicher-ergebnis"), "Gespeichert.", "erfolg");

@@ -17,6 +17,9 @@ const STANDARD = {
   baseUrl: "",
   workspaceId: "",
   // Gemerktes Ziel — leer bedeutet "beim ersten Mal fragen".
+  // ``zielArt``: "wiki" = manuelles Wiki, "thema" = themenbezogenes LLM-Wiki.
+  // ``wikiId`` traegt in beiden Faellen die ID des Ziels.
+  zielArt: "wiki",
   wikiId: "",
   wikiName: "",
   section: "Allgemein",
@@ -74,6 +77,13 @@ export async function hatZiel() {
 }
 
 /** Ziel merken — genau das, was beim ersten Mal abgefragt wurde. */
-export async function zielMerken({ wikiId, wikiName, section }) {
-  await einstellungenSpeichern({ wikiId, wikiName, section: section || "Allgemein" });
+export async function zielMerken({ zielArt, wikiId, wikiName, section }) {
+  await einstellungenSpeichern({
+    zielArt: zielArt || "wiki",
+    wikiId,
+    wikiName,
+    // Beim Thema bleibt die Section bewusst leer statt "Allgemein" —
+    // sonst suggeriert die Anzeige einen Bereich, den es dort nicht gibt.
+    section: zielArt === "thema" ? "" : section || "Allgemein",
+  });
 }

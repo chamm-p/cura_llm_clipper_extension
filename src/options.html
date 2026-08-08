@@ -52,15 +52,19 @@
         </p>
 
         <label class="feld">
-          <span>Wiki</span>
+          <span>Ziel</span>
           <select id="f-wiki"><option value="">— noch nicht geladen —</option></select>
+          <small>
+            <strong>Manuelles Wiki</strong> = eigene Sammlung mit Bereichen.
+            <strong>Thema</strong> = Ablage im themenbezogenen Wiki.
+          </small>
         </label>
 
-        <label class="feld">
+        <label class="feld" id="f-feld-section">
           <span>Bereich (Section)</span>
           <input id="f-section" list="f-section-liste" placeholder="Allgemein" />
           <datalist id="f-section-liste"></datalist>
-          <small>Leer = <strong>Allgemein</strong>.</small>
+          <small>Leer = <strong>Allgemein</strong>. Nur bei manuellen Wikis.</small>
         </label>
 
         <button id="btn-wikis-laden" class="sekundaer">Wikis neu laden</button>

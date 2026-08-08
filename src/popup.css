@@ -159,6 +159,11 @@ button { font: inherit; cursor: pointer; border-radius: 6px; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Ziel-Wiki als Link: oeffnet cura an genau dieser Stelle. */
+.ziel-text.anklickbar { cursor: pointer; }
+.ziel-text.anklickbar strong { color: var(--akzent); text-decoration: underline; }
+.ziel-text.anklickbar:hover strong { color: var(--akzent-dunkel); }
 .ziel-text strong { color: var(--fg); }
 
 .fuss { margin: 8px 0 0; font-size: 11px; color: var(--gedaempft); }

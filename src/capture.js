@@ -121,13 +121,45 @@ export async function seitenTextHolen(tabId) {
   }
 }
 
-/** Alles in einem Rutsch: Tab, Screenshot, Text. */
+/** Obergrenze fuer das MHTML-Archiv. Darueber wird es weggelassen. */
+const MAX_MHTML_BYTES = 25 * 1024 * 1024;
+
+/**
+ * Vollstaendiges Seitenarchiv als MHTML (Seite samt Bildern, CSS, Fonts in
+ * EINER Datei). Ergaenzt Screenshot und Text um das, was beide nicht koennen:
+ * die Seite spaeter originalgetreu wieder anzeigen.
+ *
+ * `null`, wenn die Aufnahme scheitert oder zu gross ist — das Clipping soll
+ * daran nicht scheitern, Screenshot und Text tragen den Eintrag weiterhin.
+ */
+export async function mhtmlHolen(tabId) {
+  if (!chrome.pageCapture?.saveAsMHTML) return null; // z.B. Firefox
+  try {
+    const blob = await new Promise((auf, ab) => {
+      chrome.pageCapture.saveAsMHTML({ tabId }, (ergebnis) => {
+        const fehler = chrome.runtime.lastError;
+        if (fehler) ab(new Error(fehler.message));
+        else auf(ergebnis);
+      });
+    });
+    if (!blob || blob.size > MAX_MHTML_BYTES) return null;
+    return blob;
+  } catch {
+    return null;
+  }
+}
+
+/** Alles in einem Rutsch: Tab, Screenshot, Text, MHTML-Archiv. */
 export async function seiteErfassen() {
   const tab = await aktivenTabHolen();
+  // MHTML bewusst NICHT parallel: `saveAsMHTML` haelt die Seite kurz an, und
+  // ein gleichzeitiger `captureVisibleTab` liefert dann gern ein weisses Bild.
   const [screenshot, seite] = await Promise.all([
     screenshotHolen(tab.windowId),
     seitenTextHolen(tab.id),
   ]);
+  const mhtml = await mhtmlHolen(tab.id);
+
   return {
     url: tab.url,
     titel: seite.titel || tab.title || tab.url,
@@ -135,5 +167,6 @@ export async function seiteErfassen() {
     text: seite.text,
     textGekuerzt: seite.gekuerzt,
     screenshot,
+    mhtml,
   };
 }

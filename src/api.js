@@ -84,18 +84,71 @@ export async function michAbrufen() {
 }
 
 /**
- * Sichtbare Wikis. Themenlose und themengebundene zusammen — das Backend
- * filtert bereits auf das, was der Nutzer sehen darf.
+ * Sichtbare MANUELLE Wikis (Tabelle ``wikis``).
+ *
+ * Wichtig zur Abgrenzung: das LLM-Wiki eines THEMAS steht hier NICHT drin —
+ * es besteht aus ``knowledge_pages`` mit gesetzter ``theme_id`` und hat gar
+ * keine Zeile in ``wikis``. Themen kommen deshalb aus ``themenLaden``.
  */
 export async function wikisLaden() {
   const liste = await anfrage("/api/wikis");
   return (Array.isArray(liste) ? liste : []).map((w) => ({
+    art: "wiki",
     id: w.id,
     name: w.name,
     themeId: w.theme_id ?? null,
     istThemenGebunden: Boolean(w.theme_id),
     darfSchreiben: w.ist_eigenes !== false || w.member_can_edit !== false,
   }));
+}
+
+/** Workspaces des Nutzers — Einstieg fuer die Themen-Abfrage. */
+export async function workspacesLaden() {
+  const liste = await anfrage("/api/workspaces");
+  return (Array.isArray(liste) ? liste : []).map((w) => ({ id: w.id, name: w.name }));
+}
+
+/**
+ * Themen mit aktiviertem LLM-Wiki. Ziel "Thema" bedeutet: das Clipping
+ * landet im themenbezogenen Wiki bzw. bei den Artefakten des Themas.
+ *
+ * Ohne konfigurierten Workspace werden alle zugaenglichen abgeklappert —
+ * bei einem einzelnen Workspace ist das genau eine Zusatzabfrage.
+ */
+export async function themenLaden() {
+  const cfg = await einstellungenLaden();
+  const wsIds = cfg.workspaceId
+    ? [cfg.workspaceId]
+    : (await workspacesLaden()).map((w) => w.id);
+
+  const treffer = [];
+  for (const wsId of wsIds) {
+    let themen;
+    try {
+      themen = await anfrage(`/api/workspaces/${wsId}/themes`);
+    } catch {
+      continue; // ein unzugaenglicher Workspace darf den Rest nicht kippen
+    }
+    for (const t of Array.isArray(themen) ? themen : []) {
+      if (t.wiki_enabled === false) continue; // ohne Wiki kein sinnvolles Ziel
+      treffer.push({ art: "thema", id: t.id, name: t.name, workspaceId: wsId });
+    }
+  }
+  return treffer;
+}
+
+/**
+ * Alle Ablage-Ziele in einer Liste: manuelle Wikis + Themen.
+ *
+ * Schlaegt ein Zweig fehl, wird der andere trotzdem geliefert — sonst
+ * blockiert ein fehlendes Recht auf Themen die gesamte Auswahl.
+ */
+export async function zieleLaden() {
+  const [wikis, themen] = await Promise.all([
+    wikisLaden().catch(() => []),
+    themenLaden().catch(() => []),
+  ]);
+  return { wikis, themen };
 }
 
 /**
@@ -124,16 +177,29 @@ export async function sectionsLaden(wikiId) {
  * {artifact_id, page_slug?, status}. Bis dahin meldet die Extension einen
  * klaren 404 statt still zu scheitern.
  */
-export async function seiteAblegen({ wikiId, section, url, titel, seitenText, screenshotBlob }) {
+export async function seiteAblegen({
+  zielArt, zielId, section, url, titel, seitenText, screenshotBlob, mhtmlBlob,
+}) {
   const fd = new FormData();
   fd.append("source_url", url);
   fd.append("title", titel || "");
-  fd.append("section", section || "Allgemein");
   if (seitenText) fd.append("page_text", seitenText);
   fd.append("screenshot", screenshotBlob, "screenshot.png");
+  // Vollarchiv der Seite — optional, fehlt bei zu grossen oder gesperrten
+  // Seiten. Das Backend muss ohne auskommen.
+  if (mhtmlBlob) fd.append("mhtml", mhtmlBlob, "seite.mhtml");
+
+  // Zwei Zielarten, zwei Routen — die Section gibt es nur im manuellen Wiki.
+  // Ein Thema hat keine Sections; dort entscheidet das Backend anhand des
+  // Themas, wo der Eintrag landet.
+  const pfad =
+    zielArt === "thema"
+      ? `/api/themes/${zielId}/capture`
+      : `/api/wikis/${zielId}/capture`;
+  if (zielArt !== "thema") fd.append("section", section || "Allgemein");
 
   try {
-    return await anfrage(`/api/wikis/${wikiId}/capture`, {
+    return await anfrage(pfad, {
       methode: "POST",
       koerper: fd,
       istFormData: true,
